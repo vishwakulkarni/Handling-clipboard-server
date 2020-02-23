@@ -1,7 +1,7 @@
 var express = require('express');
 var app = express();
 var cors = require('cors');
-app.use(cors())
+// app.use(cors())
 var bodyParser = require('body-parser');
 app.use(bodyParser.json()); // support json encoded bodies
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
@@ -9,7 +9,14 @@ var mongodb = require('mongodb');
 var MongoClient = mongodb.MongoClient;
 var url = "mongodb+srv://admin:admin@clipboard-rtfg2.mongodb.net/test?retryWrites=true&w=majority";
 var str = "";
-
+//CORS Middleware
+app.use(function (req, res, next) {
+    //Enabling CORS
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, x-client-key, x-client-token, x-client-secret, Authorization");
+    next();
+    });
 var server = require('http').createServer(app);
 // var io = require('socket.io')(server);
 
@@ -76,6 +83,8 @@ app.route('/deleteClip').delete(function(req, res) {
 // var express = require('express');
 // var app = express();
 var expressWs = require('express-ws')(app);
+var aWss = expressWs.getWss('/mobileClient');
+var aWss2 = expressWs.getWss('/desktopClient');
  
 app.use(function (req, res, next) {
   console.log('middleware');
@@ -99,16 +108,15 @@ app.ws('/desktopClient', function(ws, req) {
         dbo.collection("clips").insertOne(myobj, function(err, res) {
             if (err) throw err;
             console.log("1 document inserted");
-            
+            ws.send("Abnc", "mobileClient");
+            // console.log(aWss.clients);
+            aWss.clients.forEach(function (client) {
+                client.send("msg.data");
+            });
             db.close();
         });
-        // ws2 = expressWs.getWss('/mobileClient')
-        // ws2.send("Abc");
-        // ws.applyTo('/mobileClient')
-        // ws.send
-        // ws.send({
-        //     success: true
-        // })
+        
+      
     });
   });
   console.log('socket', req.testing);
@@ -116,13 +124,17 @@ app.ws('/desktopClient', function(ws, req) {
 
 app.ws('/mobileClient', function(ws, req) {
     ws.on('message', function(msg) {
-      console.log(msg);
+      console.log("message in mobileclient: ", msg);
       MongoClient.connect(url,function(err,db){
         var dbo = db.db("clipboard");
         myobj = JSON.parse(msg);
         dbo.collection("clips").insertOne(myobj, function(err, res) {
             if (err) throw err;
             console.log("1 document inserted");
+            // console.log(aWss2.clients)
+            aWss2.clients.forEach(function (client) {
+                client.send("msg.data");
+            });
             db.close();
           });
         });
