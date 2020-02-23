@@ -3,7 +3,8 @@ var app = express();
 var bodyParser = require('body-parser');
 app.use(bodyParser.json()); // support json encoded bodies
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
-var MongoClient = require('mongodb').MongoClient;
+var mongodb = require('mongodb');
+var MongoClient = mongodb.MongoClient;
 var url = "mongodb+srv://admin:admin@clipboard-rtfg2.mongodb.net/test?retryWrites=true&w=majority";
 var str = "";
 
@@ -39,6 +40,25 @@ app.route('/clips/:userId').get(function(req, res) {
     });
     //res.send(main_result);
    });
+});
+
+app.route('/deleteClip').delete(function(req, res) {
+  console.log('Got body DELETE:', req.body);
+  let result = {};
+  MongoClient.connect(url,function(err,db){
+      var dbo = db.db("clipboard");
+      id = req.body._id;
+      console.log("Id to be deleted: "+id)
+      var myquery = { _id: new mongodb.ObjectID(id) };
+      dbo.collection("clips").deleteOne(myquery, function(err, res) {
+          if (err) throw err;
+          result["success"] = true
+          result["message"] = "Successfully deleted the document"
+          db.close();
+        });
+  });
+  res.status(200);
+  res.send(result);
 });
 
 
