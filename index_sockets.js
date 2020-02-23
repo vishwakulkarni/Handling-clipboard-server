@@ -104,15 +104,15 @@ app.ws('/desktopClient', function(ws, req) {
         
 
         let myobj = JSON.parse(msg);
-        console.log("message from desktop client: ",myobj);
+        // console.log("message from desktop client: ",myobj);
         dbo.collection("clips").insertOne(myobj, function(err, res) {
             if (err) throw err;
             console.log("1 document inserted");
             // ws.send("Abnc", "mobileClient");
             // console.log(aWss.clients);
-            aWss.clients.forEach(function (client) {
-                client.send(msg);
-            });
+            // aWss.clients.forEach(function (client) {
+            //     client.send("Clipboard text");
+            // });
             db.close();
         });
         
@@ -124,7 +124,7 @@ app.ws('/desktopClient', function(ws, req) {
 
 app.ws('/mobileClient', function(ws, req) {
     ws.on('message', function(msg) {
-      console.log("message in mobileclient: ", msg);
+    //   console.log("message in mobileclient: ", msg);
       MongoClient.connect(url,function(err,db){
         var dbo = db.db("clipboard");
         myobj = JSON.parse(msg);
@@ -132,9 +132,9 @@ app.ws('/mobileClient', function(ws, req) {
             if (err) throw err;
             console.log("1 document inserted");
             // console.log(aWss2.clients)
-            aWss2.clients.forEach(function (client) {
-                client.send(msg);
-            });
+            // aWss2.clients.forEach(function (client) {
+            //     client.send(msg);
+            // });
             db.close();
           });
         });
