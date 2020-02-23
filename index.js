@@ -7,6 +7,15 @@ var MongoClient = require('mongodb').MongoClient;
 var url = "mongodb+srv://admin:admin@clipboard-rtfg2.mongodb.net/test?retryWrites=true&w=majority";
 var str = "";
 
+var server = require('http').createServer(app);
+var io = require('socket.io')(server);
+
+
+app.use(express.static(__dirname + '/node_modules'));
+app.get('/', function(req, res,next) {
+    res.sendFile(__dirname + '/index.html');
+});
+
 
 app.post('/addClip', (req, res) => {
     console.log('Got body:', req.body);
@@ -41,6 +50,64 @@ app.route('/clips/:userId').get(function(req, res) {
    });
 });
 
+io.on('connection', function(client) {  
+    console.log('Desktop Client connected...');
+    client.emit('message','you are connected');
+    client.on('desktipClient',function(data){
+        MongoClient.connect(url,function(err,db){
+            var dbo = db.db("clipboard");
+            myobj = data;
+            dbo.collection("clips").insertOne(myobj, function(err, res) {
+                if (err) throw err;
+                console.log("1 document inserted");
+                db.close();
+              });
+        });
+        client.to('mobileClient').emit(data,'From Desktop');
+    });
+
+    client.on('mobileClient',function(data){
+        MongoClient.connect(url,function(err,db){
+            var dbo = db.db("clipboard");
+            myobj = data;
+            dbo.collection("clips").insertOne(myobj, function(err, res) {
+                if (err) throw err;
+                console.log("1 document inserted");
+                db.close();
+              });
+        });
+        client.emit('message','From Desktop');
+        client.to('desktipClient').emit(data,'From Desktop');
+    });
+    //below code is not needed
+    client.on('join', function(data) {
+        console.log(data);
+        client.emit('messages', 'Hello from server');
+    });
+});
+/* 
+
+<script>
+ var socket = io.connect();
+ socket.on('connect', function(data) {
+    socket.emit('join', 'Hello World from client');
+ });
+ socket.on('broad', function(data) {
+         $('#future').append(data+ "<br/>");
+   });
+
+ $('form').submit(function(e){
+     e.preventDefault();
+     var message = $('#chat_input').val();
+     socket.emit('messages', message);
+ });
+</script>
 
 
-var server = app.listen(3000, function() {console.log("Server listening on port http://localhost:3000 ");});
+*/
+
+server.listen(3000);
+
+
+
+//var server = app.listen(3000, function() {console.log("Server listening on port http://localhost:3000 ");});
