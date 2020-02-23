@@ -97,8 +97,13 @@ app.ws('/desktopClient', function(ws, req) {
         dbo.collection("clips").insertOne(myobj, function(err, res) {
             if (err) throw err;
             console.log("1 document inserted");
+            
             db.close();
         });
+        // ws2 = expressWs.getWss('/mobileClient')
+        // ws2.send("Abc");
+        // ws.applyTo('/mobileClient')
+        // ws.send
         // ws.send({
         //     success: true
         // })
@@ -112,7 +117,7 @@ app.ws('/mobileClient', function(ws, req) {
       console.log(msg);
       MongoClient.connect(url,function(err,db){
         var dbo = db.db("clipboard");
-        myobj = msg;
+        myobj = JSON.parse(msg);
         dbo.collection("clips").insertOne(myobj, function(err, res) {
             if (err) throw err;
             console.log("1 document inserted");
