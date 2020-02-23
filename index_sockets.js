@@ -108,10 +108,10 @@ app.ws('/desktopClient', function(ws, req) {
         dbo.collection("clips").insertOne(myobj, function(err, res) {
             if (err) throw err;
             console.log("1 document inserted");
-            ws.send("Abnc", "mobileClient");
+            // ws.send("Abnc", "mobileClient");
             // console.log(aWss.clients);
             aWss.clients.forEach(function (client) {
-                client.send("msg.data");
+                client.send(msg);
             });
             db.close();
         });
@@ -133,7 +133,7 @@ app.ws('/mobileClient', function(ws, req) {
             console.log("1 document inserted");
             // console.log(aWss2.clients)
             aWss2.clients.forEach(function (client) {
-                client.send("msg.data");
+                client.send(msg);
             });
             db.close();
           });
